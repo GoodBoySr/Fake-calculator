@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HFCalculator</title>
+  <style>
+    body {
+      background-color: skyblue;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .calculator {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      text-align: center;
+      position: relative;
+    }
+
+    .display {
+      width: 100%;
+      padding: 15px;
+      font-size: 2em;
+      margin-bottom: 10px;
+      border: none;
+      background-color: #e0f7ff;
+      color: #333;
+      text-align: right;
+      border-radius: 5px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 15px;
+      font-size: 1.2em;
+      background-color: skyblue;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      color: white;
+      transition: transform 0.1s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+    }
+
+    .explosion {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background-color: white;
+      animation: explode 0.6s forwards;
+    }
+
+    @keyframes explode {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(calc(-50px + 100px * random()), calc(-50px + 100px * random())) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    .header {
+      position: absolute;
+      top: -30px;
+      right: 10px;
+      font-weight: bold;
+      font-size: 1.2em;
+      color: white;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: white;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      font-size: 1.2em;
+      z-index: 999;
+    }
+
+    .overlay input {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+    }
+
+    .overlay button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+      background-color: skyblue;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">HFCalculator</div>
+  <div class="calculator">
+    <input type="text" id="display" class="display" disabled />
+    <div class="buttons">
+      <button class="btn" onclick="press('1')">1</button>
+      <button class="btn" onclick="press('2')">2</button>
+      <button class="btn" onclick="press('3')">3</button>
+      <button class="btn" onclick="press('+')">+</button>
+
+      <button class="btn" onclick="press('4')">4</button>
+      <button class="btn" onclick="press('5')">5</button>
+      <button class="btn" onclick="press('6')">6</button>
+      <button class="btn" onclick="press('-')">-</button>
+
+      <button class="btn" onclick="press('7')">7</button>
+      <button class="btn" onclick="press('8')">8</button>
+      <button class="btn" onclick="press('9')">9</button>
+      <button class="btn" onclick="press('*')">*</button>
+
+      <button class="btn" onclick="press('.')">.</button>
+      <button class="btn" onclick="press('0')">0</button>
+      <button class="btn" onclick="removeLast()">DEL</button>
+      <button class="btn" onclick="press('/')">/</button>
+
+      <button class="btn" onclick="clearDisplay()">C</button>
+      <button class="btn" onclick="calculate()">=</button>
+    </div>
+  </div>
+  <div class="footer">@Calculator.corp</div>
+
+  <div id="overlay" class="overlay" style="display: none;">
+    <div id="overlayContent">Enter Password:</div>
+    <input id="overlayInput" type="password"/>
+    <button onclick="checkPassword()">Done</button>
+  </div>
+
+  <script>
+    const display = document.getElementById("display");
+    let input = "";
+    let step = 0;
+    const overlay = document.getElementById("overlay");
+    const overlayInput = document.getElementById("overlayInput");
+    const overlayContent = document.getElementById("overlayContent");
+
+    function press(val) {
+      if (["+", "*", "/", "-"].includes(val) && (input === "" || /[+\-*/.]$/.test(input))) return;
+      if (val === "0" && input === "") return;
+      if (val === "0" && /^0+$/.test(input)) return;
+      if (val === "." && input.includes(".")) return;
+      input += val;
+      display.value = input;
+      explodeButton(event.target);
+    }
+
+    function clearDisplay() {
+      input = "";
+      display.value = "";
+    }
+
+    function removeLast() {
+      input = input.slice(0, -1);
+      display.value = input;
+    }
+
+    function calculate() {
+      if (input === "565656") {
+        step = 1;
+        showOverlay("Enter Password:");
+      } else {
+        try {
+          if (/^[+\-*/.]/.test(input) || /[+\-*/.]$/.test(input) || /[+\-*/]{2,}/.test(input)) throw "Invalid";
+          const result = eval(input);
+          display.value = result;
+          input = result.toString();
+          explosionEffect();
+        } catch {
+          display.value = "Error";
+          input = "";
+        }
+      }
+    }
+
+    function showOverlay(text) {
+      overlay.style.display = "flex";
+      overlayInput.value = "";
+      overlayContent.innerText = text;
+    }
+
+    function checkPassword() {
+      if (step === 1 && overlayInput.value === "09558555464") {
+        step = 2;
+        showOverlay("Go to Google type in Flass.");
+      } else if (step === 2 && overlayInput.value === "Nathan") {
+        overlayContent.innerHTML = `<button onclick="location.href='https://pornhub.com'">Continue</button>`;
+        overlayInput.style.display = "none";
+        event.target.style.display = "none";
+      } else {
+        overlay.style.display = "none";
+        step = 0;
+      }
+    }
+
+    function explodeButton(btn) {
+      for (let i = 0; i < 10; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'explosion';
+        particle.style.left = `${btn.offsetLeft + 20}px`;
+        particle.style.top = `${btn.offsetTop + 20}px`;
+        particle.style.position = 'absolute';
+        btn.appendChild(particle);
+        setTimeout(() => btn.removeChild(particle), 600);
+      }
+    }
+
+    function explosionEffect() {
+      const center = display.getBoundingClientRect();
+      for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'explosion';
+        particle.style.left = `${center.left + center.width / 2}px`;
+        particle.style.top = `${center.top}px`;
+        particle.style.position = 'fixed';
+        document.body.appendChild(particle);
+        setTimeout(() => document.body.removeChild(particle), 600);
+      }
+    }
+  </script>
+</body>
+</html>
